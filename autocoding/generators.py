@@ -82,6 +82,8 @@ def dataFormat_h_generator(json_file):
     # variable to counter number of bytes the struct will be
     totalBytes = 0
 
+    # header
+    outputStruct += "  char header[5];   //<bsr>\n"
     # open the data format json file and read it line by line
     # key is the name
     for key in json_file.keys():
@@ -102,10 +104,12 @@ def dataFormat_h_generator(json_file):
         # get the number of bytes of this variable and add it to totalBytes
         totalBytes += json_file[key][num_bytes_column]
 
+    # footer
+    outputStruct += "  char footer[6];   //</bsr>\n"
     # add the closing brace
     outputStruct += "} data_format;\n\n"
     # at the top, add a macro for total number of bytes of this struct
-    outputStruct = "#define TOTAL_BYTES " + str(totalBytes) + "\n\n" + outputStruct
+    outputStruct = "#define TOTAL_BYTES sizeof(dataformat)" + "\n\n" + outputStruct
     return "\n" + outputStruct + "\n" + getterSetterMethods
 
 
@@ -116,7 +120,8 @@ def dataFormat_cpp_generator(json_file):
     mutexes = ""
     getterSetterMethods = ""
     # add a short preface to set the pack power by multiplying pack voltage and current.
-    copyStructMethod = "void copyDataStructToWriteStruct() {\n  // set pack power\n  float v = get_pack_voltage();\n  float i = get_pack_current();\n  set_pack_power(i*v);\n\n  dfwrite_mutex.lock();\n"
+    copyStructMethod = "void copyDataStructToWriteStruct() {\n  // set pack power\n  float v = get_pack_voltage();\n  float i = get_pack_current();\n  set_pack_power(i*v);\n\n  dfwrite_mutex.lock();\n" 
+    copyStructMethod += "  char[5] header = \"<bsr>\" \n  char[6] footer = \"</bsr>\" \n  for (int i = 0; i < 5; i++) dfwrite.header[i] = header[i]; \n"
 
     # open the data format json file and read it line by line
     # key is the name
@@ -185,7 +190,8 @@ def dataFormat_cpp_generator(json_file):
                 + mutexName
                 + ".unlock();\n}\n\n"
             )
-
+    # set footer
+    copyStructMethod += "  for (int i = 0; i < 6; i++) dfwrite.footer[i] = footer[i];\n"
     # add closing brace to copy struct method
     copyStructMethod += "  dfwrite_mutex.unlock();\n}\n"
 

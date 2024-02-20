@@ -11,9 +11,10 @@
 #include "mbed.h"
 #pragma pack(push, 1)
 
-#define TOTAL_BYTES 461
+#define TOTAL_BYTES sizeof(dataformat)
 
 typedef struct {
+  char header[5];   //<bsr>
   float speed;
   bool driver_eStop;
   bool external_eStop;
@@ -199,6 +200,7 @@ typedef struct {
   float lat;
   float lon;
   float elev;
+  char footer[6];   //</bsr>
 } data_format;
 
 

@@ -293,6 +293,9 @@ void copyDataStructToWriteStruct() {
   set_pack_power(i*v);
 
   dfwrite_mutex.lock();
+  char[5] header = "<bsr>" 
+  char[6] footer = "</bsr>" 
+  for (int i = 0; i < 5; i++) dfwrite.header[i] = header[i]; 
   dfwrite.speed = get_speed();
   dfwrite.driver_eStop = get_driver_eStop();
   dfwrite.external_eStop = get_external_eStop();
@@ -478,6 +481,7 @@ void copyDataStructToWriteStruct() {
   dfwrite.lat = get_lat();
   dfwrite.lon = get_lon();
   dfwrite.elev = get_elev();
+  for (int i = 0; i < 6; i++) dfwrite.footer[i] = footer[i];
   dfwrite_mutex.unlock();
 }
 
