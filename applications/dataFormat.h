@@ -9,97 +9,93 @@
 #define __dataFormat__h__
 
 #include "mbed.h"
+
 #pragma pack(push, 1)
 
-#define TOTAL_BYTES sizeof(dataformat)
+#define BYTE_ARRAY_SIZE sizeof(data_format)
 
-typedef struct {
+// Restart enable management
+bool get_restart_enable();
+void set_restart_enable(bool val);
+
+// Clears data struct
+void cleardfdata();
+
+// To freeze telemetry readings for transmissions
+void copyDataStructToWriteStruct();
+
+
+
+typedef struct data_format {
   char header[5];   //<bsr>
+  // MCC Signals
+  float accelerator_pedal;
   float speed;
-  bool driver_eStop;
-  bool external_eStop;
-  bool crash;
-  bool door;
-  bool door_lim_out;
-  bool mcu_check;
-  bool mcu_stat_fdbk;
-  bool mcu_hv_en;
-  bool imd_status;
-  bool mcu_latch;
-  char state;
+  uint8_t mcc_state;
   bool fr_telem;
-  bool fr_out;
-  float linear_accel_x;
-  float linear_accel_y;
-  float linear_accel_z;
-  float angular_rate_pitch;
-  float angular_rate_roll;
-  float angular_rate_yaw;
-  float motor_temp;
-  float motor_controller_temp;
-  float dcdc_temp;
-  float driverIO_temp;
-  float mainIO_temp;
-  float cabin_temp;
-  float road_temp;
-  float brake_temp;
-  float air_temp;
-  bool bl_turn_led_en;
-  bool br_turn_led_en;
-  bool bc_brake_led_en;
-  bool bc_bps_led_en;
-  bool headlights_led_en;
-  bool fl_turn_led_en;
-  bool fr_turn_led_en;
-  bool left_turn;
-  bool right_turn;
-  bool hazards;
-  bool headlights;
-  bool horn_status;
   bool crz_pwr_mode;
   bool crz_spd_mode;
   float crz_pwr_setpt;
   float crz_spd_setpt;
-  uint8_t crz_state;
   bool eco;
   bool main_telem;
-  bool brake_status;
-  bool mech_brake_status;
-  bool parking_brake;
-  float accelerator;
-  float accelerator_out;
+  bool foot_brake;
+  float regen_brake;
   float motor_current;
   float motor_power;
   uint8_t mc_status;
-  bool mppt_can_heartbeat;
-  bool mcc_can_heartbeat;
-  bool bms_can_heartbeat;
-  bool mainIO_heartbeat;
-  float main_5V_bus;
-  float main_12V_bus;
-  float main_vbus;
-  float main_vbus_current;
-  float driver_5V_bus;
-  float driver_12V_bus;
-  float driver_vbus;
-  float driver_vbus_current;
-  bool main_power_critical;
-  bool main_power_warning;
-  bool main_power_tc;
-  bool main_power_valid;
-  bool driver_power_critical;
-  bool driver_power_warning;
-  bool driver_power_tc;
-  bool driver_power_valid;
-  uint16_t tstamp_ms;
-  uint8_t tstamp_sc;
-  uint8_t tstamp_mn;
-  uint8_t tstamp_hr;
+
+  // HV Signals
+  bool driver_eStop;
+  bool external_eStop;
+  bool crash;
+  bool discharge_enable;
+  bool discharge_enabled;
+  bool charge_enable;
+  bool charge_enabled;
+  bool isolation;
+  bool mcu_hv_en;
+  bool mcu_stat_fdbk;
   bool mppt_contactor;
   bool motor_controller_contactor;
   bool low_contactor;
-  bool dcdc_valid;
-  bool supplemental_valid;
+  float dcdc_current;
+  bool dcdc_deg;
+  bool use_dcdc;
+  float supplemental_current;
+  float supplemental_voltage;
+  bool supplemental_deg;
+  bool use_supp;
+  float est_supplemental_soc;
+  bool bms_mpio1;
+
+  // MainIO
+  bool park_brake;
+  float air_temp;
+  float brake_temp;
+  float dcdc_temp;
+  float mainIO_temp;
+  float motor_controller_temp;
+  float motor_temp;
+  float road_temp;
+  bool l_turn_led_en;
+  bool r_turn_led_en;
+  bool brake_led_en;
+  bool headlights_led_en;
+  bool hazards;
+  float main_5V_bus;
+  float main_12V_bus;
+  float main_24V_bus;
+  float main_5V_current;
+  float main_12V_current;
+  float main_24V_current;
+  bool bms_can_heartbeat;
+  bool hv_can_heartbeat;
+  bool mainIO_heartbeat;
+  bool mcc_can_heartbeat;
+  bool mppt_can_heartbeat;
+
+  // MPPT
   bool mppt_mode;
   float mppt_current_out;
   float string1_temp;
@@ -111,16 +107,56 @@ typedef struct {
   float string1_I_in;
   float string2_I_in;
   float string3_I_in;
+
+  // BMS
   float pack_temp;
   float pack_internal_temp;
   float pack_current;
   float pack_voltage;
   float pack_power;
-  float highest_cell_group_voltage;
-  uint8_t highest_cell_group_voltage_idx;
-  float lowest_cell_group_voltage;
-  uint8_t lowest_cell_group_voltage_idx;
-  float supplemental_voltage;
+  uint16_t populated_cells;
+  float soc;
+  float soh;
+  float pack_amphours;
+  float adaptive_total_capacity;
+  uint8_t fan_speed;
+  float pack_resistance;
+  float bms_input_voltage;
+  bool bps_fault;
+  bool voltage_failsafe;
+  bool current_failsafe;
+  bool relay_failsafe;
+  bool cell_balancing_active;
+  bool charge_interlock_failsafe;
+  bool thermistor_b_value_table_invalid;
+  bool input_power_supply_failsafe;
+  bool discharge_limit_enforcement_fault;
+  bool charger_safety_relay_fault;
+  bool internal_hardware_fault;
+  bool internal_heatsink_fault;
+  bool internal_software_fault;
+  bool highest_cell_voltage_too_high_fault;
+  bool lowest_cell_voltage_too_low_fault;
+  bool pack_too_hot_fault;
+  bool high_voltage_interlock_signal_fault;
+  bool precharge_circuit_malfunction;
+  bool abnormal_state_of_charge_behavior;
+  bool internal_communication_fault;
+  bool cell_balancing_stuck_off_fault;
+  bool weak_cell_fault;
+  bool low_cell_voltage_fault;
+  bool open_wiring_fault;
+  bool current_sensor_fault;
+  bool highest_cell_voltage_over_5V_fault;
+  bool cell_asic_fault;
+  bool weak_pack_fault;
+  bool fan_monitor_fault;
+  bool thermistor_fault;
+  bool external_communication_fault;
+  bool redundant_power_supply_fault;
+  bool high_voltage_isolation_fault;
+  bool input_power_supply_fault;
+  bool charge_limit_enforcement_fault;
   float cell_group1_voltage;
   float cell_group2_voltage;
   float cell_group3_voltage;
@@ -152,180 +188,36 @@ typedef struct {
   float cell_group29_voltage;
   float cell_group30_voltage;
   float cell_group31_voltage;
-  uint16_t populated_cells;
-  float soc;
-  float est_supplemental_soc;
-  float soh;
-  float pack_capacity;
-  float adaptive_total_capacity;
-  bool bps_fault;
-  bool fan_enable;
-  uint8_t fan_speed;
-  bool voltage_failsafe;
-  bool current_failsafe;
-  bool relay_failsafe;
-  bool cell_balancing_active;
-  bool charge_interlock_failsafe;
-  bool thermistor_b_value_table_invalid;
-  bool input_power_supply_failsafe;
-  bool discharge_limit_enforcement_fault;
-  bool charger_safety_relay_fault;
-  bool internal_hardware_fault;
-  bool internal_heatsink_fault;
-  bool internal_software_fault;
-  bool highest_cell_voltage_too_high_fault;
-  bool lowest_cell_voltage_too_low_fault;
-  bool pack_too_hot_fault;
-  bool internal_communication_fault;
-  bool cell_balancing_stuck_off_fault;
-  bool weak_cell_fault;
-  bool low_cell_voltage_fault;
-  bool open_wiring_fault;
-  bool current_sensor_fault;
-  bool highest_cell_voltage_over_5V_fault;
-  bool cell_asic_fault;
-  bool weak_pack_fault;
-  bool fan_monitor_fault;
-  bool thermistor_fault;
-  bool external_communication_fault;
-  bool redundant_power_supply_fault;
-  bool high_voltage_isolation_fault;
-  bool input_power_supply_fault;
-  bool charge_limit_enforcement_fault;
-  float pack_resistance;
-  float bms_input_voltage;
-  bool charge_enable;
-  bool discharge_enable;
+
+  // Software
+  uint16_t tstamp_ms;
+  uint8_t tstamp_sc;
+  uint8_t tstamp_mn;
+  uint8_t tstamp_hr;
   uint64_t tstamp_unix;
   float lat;
   float lon;
   float elev;
+
   char footer[6];   //</bsr>
 } data_format;
 
+// Data storage structs
+extern data_format dfwrite;
+extern data_format dfdata;
+
+
+float get_accelerator_pedal();
+void set_accelerator_pedal(float val);
 
 float get_speed();
 void set_speed(float val);
 
-bool get_driver_eStop();
-void set_driver_eStop(bool val);
-
-bool get_external_eStop();
-void set_external_eStop(bool val);
-
-bool get_crash();
-void set_crash(bool val);
-
-bool get_door();
-void set_door(bool val);
-
-bool get_door_lim_out();
-void set_door_lim_out(bool val);
-
-bool get_mcu_check();
-void set_mcu_check(bool val);
-
-bool get_mcu_stat_fdbk();
-void set_mcu_stat_fdbk(bool val);
-
-bool get_mcu_hv_en();
-void set_mcu_hv_en(bool val);
-
-bool get_imd_status();
-void set_imd_status(bool val);
-
-bool get_mcu_latch();
-void set_mcu_latch(bool val);
-
-char get_state();
-void set_state(char val);
+uint8_t get_mcc_state();
+void set_mcc_state(uint8_t val);
 
 bool get_fr_telem();
 void set_fr_telem(bool val);
-
-bool get_fr_out();
-void set_fr_out(bool val);
-
-float get_linear_accel_x();
-void set_linear_accel_x(float val);
-
-float get_linear_accel_y();
-void set_linear_accel_y(float val);
-
-float get_linear_accel_z();
-void set_linear_accel_z(float val);
-
-float get_angular_rate_pitch();
-void set_angular_rate_pitch(float val);
-
-float get_angular_rate_roll();
-void set_angular_rate_roll(float val);
-
-float get_angular_rate_yaw();
-void set_angular_rate_yaw(float val);
-
-float get_motor_temp();
-void set_motor_temp(float val);
-
-float get_motor_controller_temp();
-void set_motor_controller_temp(float val);
-
-float get_dcdc_temp();
-void set_dcdc_temp(float val);
-
-float get_driverIO_temp();
-void set_driverIO_temp(float val);
-
-float get_mainIO_temp();
-void set_mainIO_temp(float val);
-
-float get_cabin_temp();
-void set_cabin_temp(float val);
-
-float get_road_temp();
-void set_road_temp(float val);
-
-float get_brake_temp();
-void set_brake_temp(float val);
-
-float get_air_temp();
-void set_air_temp(float val);
-
-bool get_bl_turn_led_en();
-void set_bl_turn_led_en(bool val);
-
-bool get_br_turn_led_en();
-void set_br_turn_led_en(bool val);
-
-bool get_bc_brake_led_en();
-void set_bc_brake_led_en(bool val);
-
-bool get_bc_bps_led_en();
-void set_bc_bps_led_en(bool val);
-
-bool get_headlights_led_en();
-void set_headlights_led_en(bool val);
-
-bool get_fl_turn_led_en();
-void set_fl_turn_led_en(bool val);
-
-bool get_fr_turn_led_en();
-void set_fr_turn_led_en(bool val);
-
-bool get_left_turn();
-void set_left_turn(bool val);
-
-bool get_right_turn();
-void set_right_turn(bool val);
-
-bool get_hazards();
-void set_hazards(bool val);
-
-bool get_headlights();
-void set_headlights(bool val);
-
-bool get_horn_status();
-void set_horn_status(bool val);
 
 bool get_crz_pwr_mode();
 void set_crz_pwr_mode(bool val);
@@ -339,29 +231,17 @@ void set_crz_pwr_setpt(float val);
 float get_crz_spd_setpt();
 void set_crz_spd_setpt(float val);
 
-uint8_t get_crz_state();
-void set_crz_state(uint8_t val);
-
 bool get_eco();
 void set_eco(bool val);
 
 bool get_main_telem();
 void set_main_telem(bool val);
 
-bool get_brake_status();
-void set_brake_status(bool val);
+bool get_foot_brake();
+void set_foot_brake(bool val);
 
-bool get_mech_brake_status();
-void set_mech_brake_status(bool val);
-
-bool get_parking_brake();
-void set_parking_brake(bool val);
-
-float get_accelerator();
-void set_accelerator(float val);
-
-float get_accelerator_out();
-void set_accelerator_out(float val);
+float get_regen_brake();
+void set_regen_brake(float val);
 
 float get_motor_current();
 void set_motor_current(float val);
@@ -372,77 +252,35 @@ void set_motor_power(float val);
 uint8_t get_mc_status();
 void set_mc_status(uint8_t val);
 
-bool get_mppt_can_heartbeat();
-void set_mppt_can_heartbeat(bool val);
+bool get_driver_eStop();
+void set_driver_eStop(bool val);
 
-bool get_mcc_can_heartbeat();
-void set_mcc_can_heartbeat(bool val);
+bool get_external_eStop();
+void set_external_eStop(bool val);
 
-bool get_bms_can_heartbeat();
-void set_bms_can_heartbeat(bool val);
+bool get_crash();
+void set_crash(bool val);
 
-bool get_mainIO_heartbeat();
-void set_mainIO_heartbeat(bool val);
+bool get_discharge_enable();
+void set_discharge_enable(bool val);
 
-float get_main_5V_bus();
-void set_main_5V_bus(float val);
+bool get_discharge_enabled();
+void set_discharge_enabled(bool val);
 
-float get_main_12V_bus();
-void set_main_12V_bus(float val);
+bool get_charge_enable();
+void set_charge_enable(bool val);
 
-float get_main_vbus();
-void set_main_vbus(float val);
+bool get_charge_enabled();
+void set_charge_enabled(bool val);
 
-float get_main_vbus_current();
-void set_main_vbus_current(float val);
+bool get_isolation();
+void set_isolation(bool val);
 
-float get_driver_5V_bus();
-void set_driver_5V_bus(float val);
+bool get_mcu_hv_en();
+void set_mcu_hv_en(bool val);
 
-float get_driver_12V_bus();
-void set_driver_12V_bus(float val);
-
-float get_driver_vbus();
-void set_driver_vbus(float val);
-
-float get_driver_vbus_current();
-void set_driver_vbus_current(float val);
-
-bool get_main_power_critical();
-void set_main_power_critical(bool val);
-
-bool get_main_power_warning();
-void set_main_power_warning(bool val);
-
-bool get_main_power_tc();
-void set_main_power_tc(bool val);
-
-bool get_main_power_valid();
-void set_main_power_valid(bool val);
-
-bool get_driver_power_critical();
-void set_driver_power_critical(bool val);
-
-bool get_driver_power_warning();
-void set_driver_power_warning(bool val);
-
-bool get_driver_power_tc();
-void set_driver_power_tc(bool val);
-
-bool get_driver_power_valid();
-void set_driver_power_valid(bool val);
-
-uint16_t get_tstamp_ms();
-void set_tstamp_ms(uint16_t val);
-
-uint8_t get_tstamp_sc();
-void set_tstamp_sc(uint8_t val);
-
-uint8_t get_tstamp_mn();
-void set_tstamp_mn(uint8_t val);
-
-uint8_t get_tstamp_hr();
-void set_tstamp_hr(uint8_t val);
+bool get_mcu_stat_fdbk();
+void set_mcu_stat_fdbk(bool val);
 
 bool get_mppt_contactor();
 void set_mppt_contactor(bool val);
@@ -453,11 +291,104 @@ void set_motor_controller_contactor(bool val);
 bool get_low_contactor();
 void set_low_contactor(bool val);
 
-bool get_dcdc_valid();
-void set_dcdc_valid(bool val);
+float get_dcdc_current();
+void set_dcdc_current(float val);
 
-bool get_supplemental_valid();
-void set_supplemental_valid(bool val);
+bool get_dcdc_deg();
+void set_dcdc_deg(bool val);
+
+bool get_use_dcdc();
+void set_use_dcdc(bool val);
+
+float get_supplemental_current();
+void set_supplemental_current(float val);
+
+float get_supplemental_voltage();
+void set_supplemental_voltage(float val);
+
+bool get_supplemental_deg();
+void set_supplemental_deg(bool val);
+
+bool get_use_supp();
+void set_use_supp(bool val);
+
+float get_est_supplemental_soc();
+void set_est_supplemental_soc(float val);
+
+bool get_bms_mpio1();
+void set_bms_mpio1(bool val);
+
+bool get_park_brake();
+void set_park_brake(bool val);
+
+float get_air_temp();
+void set_air_temp(float val);
+
+float get_brake_temp();
+void set_brake_temp(float val);
+
+float get_dcdc_temp();
+void set_dcdc_temp(float val);
+
+float get_mainIO_temp();
+void set_mainIO_temp(float val);
+
+float get_motor_controller_temp();
+void set_motor_controller_temp(float val);
+
+float get_motor_temp();
+void set_motor_temp(float val);
+
+float get_road_temp();
+void set_road_temp(float val);
+
+bool get_l_turn_led_en();
+void set_l_turn_led_en(bool val);
+
+bool get_r_turn_led_en();
+void set_r_turn_led_en(bool val);
+
+bool get_brake_led_en();
+void set_brake_led_en(bool val);
+
+bool get_headlights_led_en();
+void set_headlights_led_en(bool val);
+
+bool get_hazards();
+void set_hazards(bool val);
+
+float get_main_5V_bus();
+void set_main_5V_bus(float val);
+
+float get_main_12V_bus();
+void set_main_12V_bus(float val);
+
+float get_main_24V_bus();
+void set_main_24V_bus(float val);
+
+float get_main_5V_current();
+void set_main_5V_current(float val);
+
+float get_main_12V_current();
+void set_main_12V_current(float val);
+
+float get_main_24V_current();
+void set_main_24V_current(float val);
+
+bool get_bms_can_heartbeat();
+void set_bms_can_heartbeat(bool val);
+
+bool get_hv_can_heartbeat();
+void set_hv_can_heartbeat(bool val);
+
+bool get_mainIO_heartbeat();
+void set_mainIO_heartbeat(bool val);
+
+bool get_mcc_can_heartbeat();
+void set_mcc_can_heartbeat(bool val);
+
+bool get_mppt_can_heartbeat();
+void set_mppt_can_heartbeat(bool val);
 
 bool get_mppt_mode();
 void set_mppt_mode(bool val);
@@ -507,20 +438,134 @@ void set_pack_voltage(float val);
 float get_pack_power();
 void set_pack_power(float val);
 
-float get_highest_cell_group_voltage();
-void set_highest_cell_group_voltage(float val);
+uint16_t get_populated_cells();
+void set_populated_cells(uint16_t val);
 
-uint8_t get_highest_cell_group_voltage_idx();
-void set_highest_cell_group_voltage_idx(uint8_t val);
+float get_soc();
+void set_soc(float val);
 
-float get_lowest_cell_group_voltage();
-void set_lowest_cell_group_voltage(float val);
+float get_soh();
+void set_soh(float val);
 
-uint8_t get_lowest_cell_group_voltage_idx();
-void set_lowest_cell_group_voltage_idx(uint8_t val);
+float get_pack_amphours();
+void set_pack_amphours(float val);
 
-float get_supplemental_voltage();
-void set_supplemental_voltage(float val);
+float get_adaptive_total_capacity();
+void set_adaptive_total_capacity(float val);
+
+uint8_t get_fan_speed();
+void set_fan_speed(uint8_t val);
+
+float get_pack_resistance();
+void set_pack_resistance(float val);
+
+float get_bms_input_voltage();
+void set_bms_input_voltage(float val);
+
+bool get_bps_fault();
+void set_bps_fault(bool val);
+
+bool get_voltage_failsafe();
+void set_voltage_failsafe(bool val);
+
+bool get_current_failsafe();
+void set_current_failsafe(bool val);
+
+bool get_relay_failsafe();
+void set_relay_failsafe(bool val);
+
+bool get_cell_balancing_active();
+void set_cell_balancing_active(bool val);
+
+bool get_charge_interlock_failsafe();
+void set_charge_interlock_failsafe(bool val);
+
+bool get_thermistor_b_value_table_invalid();
+void set_thermistor_b_value_table_invalid(bool val);
+
+bool get_input_power_supply_failsafe();
+void set_input_power_supply_failsafe(bool val);
+
+bool get_discharge_limit_enforcement_fault();
+void set_discharge_limit_enforcement_fault(bool val);
+
+bool get_charger_safety_relay_fault();
+void set_charger_safety_relay_fault(bool val);
+
+bool get_internal_hardware_fault();
+void set_internal_hardware_fault(bool val);
+
+bool get_internal_heatsink_fault();
+void set_internal_heatsink_fault(bool val);
+
+bool get_internal_software_fault();
+void set_internal_software_fault(bool val);
+
+bool get_highest_cell_voltage_too_high_fault();
+void set_highest_cell_voltage_too_high_fault(bool val);
+
+bool get_lowest_cell_voltage_too_low_fault();
+void set_lowest_cell_voltage_too_low_fault(bool val);
+
+bool get_pack_too_hot_fault();
+void set_pack_too_hot_fault(bool val);
+
+bool get_high_voltage_interlock_signal_fault();
+void set_high_voltage_interlock_signal_fault(bool val);
+
+bool get_precharge_circuit_malfunction();
+void set_precharge_circuit_malfunction(bool val);
+
+bool get_abnormal_state_of_charge_behavior();
+void set_abnormal_state_of_charge_behavior(bool val);
+
+bool get_internal_communication_fault();
+void set_internal_communication_fault(bool val);
+
+bool get_cell_balancing_stuck_off_fault();
+void set_cell_balancing_stuck_off_fault(bool val);
+
+bool get_weak_cell_fault();
+void set_weak_cell_fault(bool val);
+
+bool get_low_cell_voltage_fault();
+void set_low_cell_voltage_fault(bool val);
+
+bool get_open_wiring_fault();
+void set_open_wiring_fault(bool val);
+
+bool get_current_sensor_fault();
+void set_current_sensor_fault(bool val);
+
+bool get_highest_cell_voltage_over_5V_fault();
+void set_highest_cell_voltage_over_5V_fault(bool val);
+
+bool get_cell_asic_fault();
+void set_cell_asic_fault(bool val);
+
+bool get_weak_pack_fault();
+void set_weak_pack_fault(bool val);
+
+bool get_fan_monitor_fault();
+void set_fan_monitor_fault(bool val);
+
+bool get_thermistor_fault();
+void set_thermistor_fault(bool val);
+
+bool get_external_communication_fault();
+void set_external_communication_fault(bool val);
+
+bool get_redundant_power_supply_fault();
+void set_redundant_power_supply_fault(bool val);
+
+bool get_high_voltage_isolation_fault();
+void set_high_voltage_isolation_fault(bool val);
+
+bool get_input_power_supply_fault();
+void set_input_power_supply_fault(bool val);
+
+bool get_charge_limit_enforcement_fault();
+void set_charge_limit_enforcement_fault(bool val);
 
 float get_cell_group1_voltage();
 void set_cell_group1_voltage(float val);
@@ -615,137 +660,17 @@ void set_cell_group30_voltage(float val);
 float get_cell_group31_voltage();
 void set_cell_group31_voltage(float val);
 
-uint16_t get_populated_cells();
-void set_populated_cells(uint16_t val);
+uint16_t get_tstamp_ms();
+void set_tstamp_ms(uint16_t val);
 
-float get_soc();
-void set_soc(float val);
+uint8_t get_tstamp_sc();
+void set_tstamp_sc(uint8_t val);
 
-float get_est_supplemental_soc();
-void set_est_supplemental_soc(float val);
+uint8_t get_tstamp_mn();
+void set_tstamp_mn(uint8_t val);
 
-float get_soh();
-void set_soh(float val);
-
-float get_pack_capacity();
-void set_pack_capacity(float val);
-
-float get_adaptive_total_capacity();
-void set_adaptive_total_capacity(float val);
-
-bool get_bps_fault();
-void set_bps_fault(bool val);
-
-bool get_fan_enable();
-void set_fan_enable(bool val);
-
-uint8_t get_fan_speed();
-void set_fan_speed(uint8_t val);
-
-bool get_voltage_failsafe();
-void set_voltage_failsafe(bool val);
-
-bool get_current_failsafe();
-void set_current_failsafe(bool val);
-
-bool get_relay_failsafe();
-void set_relay_failsafe(bool val);
-
-bool get_cell_balancing_active();
-void set_cell_balancing_active(bool val);
-
-bool get_charge_interlock_failsafe();
-void set_charge_interlock_failsafe(bool val);
-
-bool get_thermistor_b_value_table_invalid();
-void set_thermistor_b_value_table_invalid(bool val);
-
-bool get_input_power_supply_failsafe();
-void set_input_power_supply_failsafe(bool val);
-
-bool get_discharge_limit_enforcement_fault();
-void set_discharge_limit_enforcement_fault(bool val);
-
-bool get_charger_safety_relay_fault();
-void set_charger_safety_relay_fault(bool val);
-
-bool get_internal_hardware_fault();
-void set_internal_hardware_fault(bool val);
-
-bool get_internal_heatsink_fault();
-void set_internal_heatsink_fault(bool val);
-
-bool get_internal_software_fault();
-void set_internal_software_fault(bool val);
-
-bool get_highest_cell_voltage_too_high_fault();
-void set_highest_cell_voltage_too_high_fault(bool val);
-
-bool get_lowest_cell_voltage_too_low_fault();
-void set_lowest_cell_voltage_too_low_fault(bool val);
-
-bool get_pack_too_hot_fault();
-void set_pack_too_hot_fault(bool val);
-
-bool get_internal_communication_fault();
-void set_internal_communication_fault(bool val);
-
-bool get_cell_balancing_stuck_off_fault();
-void set_cell_balancing_stuck_off_fault(bool val);
-
-bool get_weak_cell_fault();
-void set_weak_cell_fault(bool val);
-
-bool get_low_cell_voltage_fault();
-void set_low_cell_voltage_fault(bool val);
-
-bool get_open_wiring_fault();
-void set_open_wiring_fault(bool val);
-
-bool get_current_sensor_fault();
-void set_current_sensor_fault(bool val);
-
-bool get_highest_cell_voltage_over_5V_fault();
-void set_highest_cell_voltage_over_5V_fault(bool val);
-
-bool get_cell_asic_fault();
-void set_cell_asic_fault(bool val);
-
-bool get_weak_pack_fault();
-void set_weak_pack_fault(bool val);
-
-bool get_fan_monitor_fault();
-void set_fan_monitor_fault(bool val);
-
-bool get_thermistor_fault();
-void set_thermistor_fault(bool val);
-
-bool get_external_communication_fault();
-void set_external_communication_fault(bool val);
-
-bool get_redundant_power_supply_fault();
-void set_redundant_power_supply_fault(bool val);
-
-bool get_high_voltage_isolation_fault();
-void set_high_voltage_isolation_fault(bool val);
-
-bool get_input_power_supply_fault();
-void set_input_power_supply_fault(bool val);
-
-bool get_charge_limit_enforcement_fault();
-void set_charge_limit_enforcement_fault(bool val);
-
-float get_pack_resistance();
-void set_pack_resistance(float val);
-
-float get_bms_input_voltage();
-void set_bms_input_voltage(float val);
-
-bool get_charge_enable();
-void set_charge_enable(bool val);
-
-bool get_discharge_enable();
-void set_discharge_enable(bool val);
+uint8_t get_tstamp_hr();
+void set_tstamp_hr(uint8_t val);
 
 uint64_t get_tstamp_unix();
 void set_tstamp_unix(uint64_t val);
@@ -760,13 +685,6 @@ float get_elev();
 void set_elev(float val);
  /* Autogenerated Code Ends */
 
-
-bool get_restart_enable();
-
-void cleardfdata();
-
-// starts the threads for reading and writing
-int runDataFormat();
 
 #pragma pack(pop)
 #endif
