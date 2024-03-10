@@ -73,60 +73,79 @@ import util
 
 def dataFormat_h_generator(json_file):
     # define macros for readability
-    data_type_column = 1
-    num_bytes_column = 0
+    DATA_TYPE_COL = 1
+    SIGNAL_TYPE_COL = 5
 
-    outputStruct = "typedef struct {\n"
+    # output struct
+    outputStruct = "typedef struct data_format {\n"
+    # add header
+    outputStruct += "  char header[5];   //<bsr>\n"
+    # different types of signals so we can have comments denoting which type each section is
+    outputStruct_mcc = "  // MCC Signals\n"
+    outputStruct_hv = "  // HV Signals\n"
+    outputStruct_main = "  // MainIO\n"
+    outputStruct_mppt = "  // MPPT\n"
+    outputStruct_bms = "  // BMS\n"
+    outputStruct_software = "  // Software\n"
     getterSetterMethods = ""
 
-    # variable to counter number of bytes the struct will be
-    totalBytes = 0
-
-    # header
-    outputStruct += "  char header[5];   //<bsr>\n"
     # open the data format json file and read it line by line
     # key is the name
     for key in json_file.keys():
-        valueType = json_file[key][data_type_column]
+        valueType = json_file[key][DATA_TYPE_COL]
+        output = ""
         # if the type is uint8 and uint16, use the correct types in c++
         if valueType == "uint8" or valueType == "uint16" or valueType == "uint64":
-            outputStruct += "  " + valueType + "_t" + " " + key + ";\n"
+            output += "  " + valueType + "_t" + " " + key + ";\n"
             getterSetterMethods += valueType + "_t get_" + key + "();\n"
-            getterSetterMethods += (
-                "void set_" + key + "(" + valueType + "_t " + "val);\n\n"
-            )
+            getterSetterMethods += ("void set_" + key + "(" + valueType + "_t " + "val);\n\n")
         else:
-            outputStruct += "  " + valueType + " " + key + ";\n"
+            output += "  " + valueType + " " + key + ";\n"
             getterSetterMethods += valueType + " get_" + key + "();\n"
-            getterSetterMethods += (
-                "void set_" + key + "(" + valueType + " " + "val);\n\n"
-            )
-        # get the number of bytes of this variable and add it to totalBytes
-        totalBytes += json_file[key][num_bytes_column]
+            getterSetterMethods += ("void set_" + key + "(" + valueType + " " + "val);\n\n")
+        # put variable declaration in correct group
+        if "MCC" in json_file[key][SIGNAL_TYPE_COL]:
+            outputStruct_mcc += output
+        elif "High Voltage" in json_file[key][SIGNAL_TYPE_COL] or "Battery;Supplemental" in json_file[key][SIGNAL_TYPE_COL]:
+            outputStruct_hv += output
+        elif "Main IO" in json_file[key][SIGNAL_TYPE_COL]:
+            outputStruct_main += output
+        elif "Solar Array" in json_file[key][SIGNAL_TYPE_COL]:
+            outputStruct_mppt += output
+        elif "Battery" in json_file[key][SIGNAL_TYPE_COL]:
+            outputStruct_bms += output
+        elif "Software" in json_file[key][SIGNAL_TYPE_COL]:
+            outputStruct_software += output
+        # not part of any group
+        else:
+            outputStruct += output
 
+    # add all groups to outputStruct
+    outputStruct += f"{outputStruct_mcc}\n{outputStruct_hv}\n{outputStruct_main}\n{outputStruct_mppt}\n{outputStruct_bms}\n{outputStruct_software}\n"
     # footer
     outputStruct += "  char footer[6];   //</bsr>\n"
     # add the closing brace
     outputStruct += "} data_format;\n\n"
-    # at the top, add a macro for total number of bytes of this struct
-    outputStruct = "#define TOTAL_BYTES sizeof(dataformat)" + "\n\n" + outputStruct
+    # add the two struct instances
+    outputStruct += "// Data storage structs\nextern data_format dfwrite;\nextern data_format dfdata;\n\n"
+
     return "\n" + outputStruct + "\n" + getterSetterMethods
 
 
 def dataFormat_cpp_generator(json_file):
     # define macros for readability
-    data_type_column = 1
+    DATA_TYPE_COL = 1
 
     mutexes = ""
     getterSetterMethods = ""
     # add a short preface to set the pack power by multiplying pack voltage and current.
-    copyStructMethod = "void copyDataStructToWriteStruct() {\n  // set pack power\n  float v = get_pack_voltage();\n  float i = get_pack_current();\n  set_pack_power(i*v);\n\n  dfwrite_mutex.lock();\n" 
-    copyStructMethod += "  char[5] header = \"<bsr>\" \n  char[6] footer = \"</bsr>\" \n  for (int i = 0; i < 5; i++) dfwrite.header[i] = header[i]; \n"
+    copyStructMethod = "void copyDataStructToWriteStruct() {\n  dfwrite_mutex.lock();\n" 
+    copyStructMethod += f'  char[6] header = "<bsr>";\n  char[7] footer = "</bsr>";\n  for (int i = 0; i < 5; i++) dfwrite.header[i] = header[i]; \n'
 
     # open the data format json file and read it line by line
     # key is the name
     for key in json_file.keys():
-        valueType = json_file[key][data_type_column]
+        valueType = json_file[key][DATA_TYPE_COL]
         mutexName = key + "_mutex"
         # create a mutex for the variable
         mutexes += "Mutex " + mutexName + ";\n"
@@ -134,65 +153,20 @@ def dataFormat_cpp_generator(json_file):
         copyStructMethod += "  dfwrite." + key + " = get_" + key + "();\n"
         # if the type is uint8 and uint16, use the correct types in c++
         if valueType == "uint8" or valueType == "uint16" or valueType == "uint64":
-            getterSetterMethods += (
-                valueType
-                + "_t get_"
-                + key
-                + "() {\n  "
-                + mutexName
-                + ".lock();\n  "
-                + valueType
-                + "_t val = dfdata."
-                + key
-                + ";\n  "
-                + mutexName
-                + ".unlock();\n  return val;\n}\n"
-            )
-            getterSetterMethods += (
-                "void set_"
-                + key
-                + "("
-                + valueType
-                + "_t "
-                + "val) {\n  "
-                + mutexName
-                + ".lock();\n  dfdata."
-                + key
-                + " = val;\n  "
-                + mutexName
-                + ".unlock();\n}\n\n"
-            )
+            getterSetterMethods += f"{valueType}_t get_{key}() {{\n  {mutexName}.lock();\n  {valueType}_t val = dfdata.{key};\n" + \
+                                    f"  {mutexName}.unlock();\n  return val;\n}}\n"
+
+            getterSetterMethods += f"void set_{key}({valueType}_t val) {{\n  {mutexName}.lock();\n  dfdata.{key} = val;\n" + \
+                                    f"  {mutexName}.unlock();\n}}\n\n"
+
         else:
-            getterSetterMethods += (
-                valueType
-                + " get_"
-                + key
-                + "() {\n  "
-                + mutexName
-                + ".lock();\n  "
-                + valueType
-                + " val = dfdata."
-                + key
-                + ";\n  "
-                + mutexName
-                + ".unlock();\n  return val;\n}\n"
-            )
-            getterSetterMethods += (
-                "void set_"
-                + key
-                + "("
-                + valueType
-                + " val) {\n  "
-                + mutexName
-                + ".lock();\n  dfdata."
-                + key
-                + " = val;\n  "
-                + mutexName
-                + ".unlock();\n}\n\n"
-            )
+            getterSetterMethods += f"{valueType} get_{key}() {{\n  {mutexName}.lock();\n  {valueType} val = dfdata.{key};\n" + \
+                                    f"  {mutexName}.unlock();\n  return val;\n}}\n"
+            getterSetterMethods += f"void set_{key}({valueType} val) {{\n  {mutexName}.lock();\n  dfdata.{key} = val;\n" + \
+                                    f"  {mutexName}.unlock();\n}}\n\n"
     # set footer
     copyStructMethod += "  for (int i = 0; i < 6; i++) dfwrite.footer[i] = footer[i];\n"
     # add closing brace to copy struct method
     copyStructMethod += "  dfwrite_mutex.unlock();\n}\n"
 
-    return "\n" + mutexes + "\n" + copyStructMethod + "\n" + getterSetterMethods
+    return f"\n{copyStructMethod}\n{mutexes}\n{getterSetterMethods}"

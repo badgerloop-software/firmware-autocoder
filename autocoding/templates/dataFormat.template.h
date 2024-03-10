@@ -2,16 +2,24 @@
 #define __dataFormat__h__
 
 #include "mbed.h"
+
 #pragma pack(push, 1)
 
-/*!!AUTO-GENERATE HERE!!*/
+#define BYTE_ARRAY_SIZE sizeof(data_format)
 
+// Restart enable management
 bool get_restart_enable();
+void set_restart_enable(bool val);
 
+// Clears data struct
 void cleardfdata();
 
-// starts the threads for reading and writing
-int runDataFormat();
+// To freeze telemetry readings for transmissions
+void copyDataStructToWriteStruct();
+
+
+
+/*!!AUTO-GENERATE HERE!!*/
 
 #pragma pack(pop)
 #endif
