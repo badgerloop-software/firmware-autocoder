@@ -94,7 +94,7 @@ def dataFormat_h_generator(json_file):
     for key in json_file.keys():
         valueType = json_file[key][DATA_TYPE_COL]
         output = ""
-        # if the type is uint8 and uint16, use the correct types in c++
+        # if the type is uint8, use the correct types in c++
         if valueType == "uint8" or valueType == "uint16" or valueType == "uint64":
             output += "  " + valueType + "_t" + " " + key + ";\n"
             getterSetterMethods += valueType + "_t get_" + key + "();\n"
@@ -129,7 +129,7 @@ def dataFormat_h_generator(json_file):
     # add the two struct instances
     outputStruct += "// Data storage structs\nextern data_format dfwrite;\nextern data_format dfdata;\n\n"
 
-    return "\n" + outputStruct + "\n" + getterSetterMethods
+    return f"\n{outputStruct}\n{getterSetterMethods}"
 
 
 def dataFormat_cpp_generator(json_file):
@@ -151,7 +151,7 @@ def dataFormat_cpp_generator(json_file):
         mutexes += "Mutex " + mutexName + ";\n"
         # add to the copy struct method
         copyStructMethod += "  dfwrite." + key + " = get_" + key + "();\n"
-        # if the type is uint8 and uint16, use the correct types in c++
+        # if the type is uint, use the correct types in c++
         if valueType == "uint8" or valueType == "uint16" or valueType == "uint64":
             getterSetterMethods += f"{valueType}_t get_{key}() {{\n  {mutexName}.lock();\n  {valueType}_t val = dfdata.{key};\n" + \
                                     f"  {mutexName}.unlock();\n  return val;\n}}\n"
@@ -170,3 +170,55 @@ def dataFormat_cpp_generator(json_file):
     copyStructMethod += "  dfwrite_mutex.unlock();\n}\n"
 
     return f"\n{copyStructMethod}\n{mutexes}\n{getterSetterMethods}"
+
+def sofi_h_generator(json_file):
+    DATA_TYPE_COL = 1
+    outputStruct = "typedef struct sofi_struct {\n"
+    getterSetterMethods = ""
+
+    for key in json_file.keys():
+        valueType = json_file[key][DATA_TYPE_COL]
+        # if the type is uint8 and uint16, use the correct types in c++
+        if valueType == "uint8" or valueType == "uint16" or valueType == "uint64":
+            outputStruct += "  " + valueType + "_t" + " " + key + ";\n"
+            getterSetterMethods += valueType + "_t get_" + key + "();\n"
+            getterSetterMethods += ("void set_" + key + "(" + valueType + "_t " + "val);\n\n")
+        else:
+            outputStruct += "  " + valueType + " " + key + ";\n"
+            getterSetterMethods += valueType + " get_" + key + "();\n"
+            getterSetterMethods += ("void set_" + key + "(" + valueType + " " + "val);\n\n")
+
+
+    outputStruct += "} sofi_struct;\n\n"
+    outputStruct += "// Data storage structs\nextern sofi_struct sofi_data;\n"
+
+    return f"{outputStruct}\n{getterSetterMethods}"
+
+
+def sofi_cpp_generator(json_file):
+    DATA_TYPE_COL = 1
+
+    mutexes = ""
+    getterSetterMethods = ""
+
+    for key in json_file.keys():
+        valueType = json_file[key][DATA_TYPE_COL]
+        mutexName = key + "_mutex"
+        # create a mutex for the variable
+        mutexes += "Mutex " + mutexName + ";\n"
+        # if the type is uint, use the correct types in c++
+        if valueType == "uint8" or valueType == "uint16" or valueType == "uint64":
+            getterSetterMethods += f"{valueType}_t get_{key}() {{\n  {mutexName}.lock();\n  {valueType}_t val = dfdata.{key};\n" + \
+                                    f"  {mutexName}.unlock();\n  return val;\n}}\n"
+
+            getterSetterMethods += f"void set_{key}({valueType}_t val) {{\n  {mutexName}.lock();\n  dfdata.{key} = val;\n" + \
+                                    f"  {mutexName}.unlock();\n}}\n\n"
+
+        else:
+            getterSetterMethods += f"{valueType} get_{key}() {{\n  {mutexName}.lock();\n  {valueType} val = dfdata.{key};\n" + \
+                                    f"  {mutexName}.unlock();\n  return val;\n}}\n"
+            getterSetterMethods += f"void set_{key}({valueType} val) {{\n  {mutexName}.lock();\n  dfdata.{key} = val;\n" + \
+                                    f"  {mutexName}.unlock();\n}}\n\n"
+
+
+    return f"{mutexes}\n{getterSetterMethods}"
