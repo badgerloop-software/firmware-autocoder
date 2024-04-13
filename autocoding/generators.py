@@ -140,7 +140,7 @@ def dataFormat_cpp_generator(json_file):
     getterSetterMethods = ""
     # add a short preface to set the pack power by multiplying pack voltage and current.
     copyStructMethod = "void copyDataStructToWriteStruct() {\n  dfwrite_mutex.lock();\n" 
-    copyStructMethod += f'  char[6] header = "<bsr>";\n  char[7] footer = "</bsr>";\n  for (int i = 0; i < 5; i++) dfwrite.header[i] = header[i]; \n'
+    copyStructMethod += f'  char header[6] = "<bsr>";\n  char footer[7] = "</bsr>";\n  for (int i = 0; i < 5; i++) dfwrite.header[i] = header[i]; \n'
 
     # open the data format json file and read it line by line
     # key is the name
@@ -203,7 +203,7 @@ def sofi_cpp_generator(json_file):
 
     for key in json_file.keys():
         valueType = json_file[key][DATA_TYPE_COL]
-        mutexName = key + "_mutex"
+        mutexName = key + "_sofi_mutex"
         # create a mutex for the variable
         mutexes += "Mutex " + mutexName + ";\n"
         # if the type is uint, use the correct types in c++

@@ -52,8 +52,8 @@ void cleardfdata() {
 
 void copyDataStructToWriteStruct() {
   dfwrite_mutex.lock();
-  char[6] header = "<bsr>";
-  char[7] footer = "</bsr>";
+  char header[6] = "<bsr>";
+  char footer[7] = "</bsr>";
   for (int i = 0; i < 5; i++) dfwrite.header[i] = header[i]; 
   dfwrite.accelerator_pedal = get_accelerator_pedal();
   dfwrite.speed = get_speed();
