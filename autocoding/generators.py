@@ -181,12 +181,12 @@ def sofi_h_generator(json_file):
         # if the type is uint8 and uint16, use the correct types in c++
         if valueType == "uint8" or valueType == "uint16" or valueType == "uint64":
             outputStruct += "  " + valueType + "_t" + " " + key + ";\n"
-            getterSetterMethods += valueType + "_t get_" + key + "();\n"
+            getterSetterMethods += valueType + "_t get_sofi_" + key + "();\n"
             getterSetterMethods += ("void set_" + key + "(" + valueType + "_t " + "val);\n\n")
         else:
             outputStruct += "  " + valueType + " " + key + ";\n"
-            getterSetterMethods += valueType + " get_" + key + "();\n"
-            getterSetterMethods += ("void set_" + key + "(" + valueType + " " + "val);\n\n")
+            getterSetterMethods += valueType + " get_sofi_" + key + "();\n"
+            getterSetterMethods += ("void set_sofi_" + key + "(" + valueType + " " + "val);\n\n")
 
 
     outputStruct += "} sofi_struct;\n\n"
@@ -208,16 +208,16 @@ def sofi_cpp_generator(json_file):
         mutexes += "Mutex " + mutexName + ";\n"
         # if the type is uint, use the correct types in c++
         if valueType == "uint8" or valueType == "uint16" or valueType == "uint64":
-            getterSetterMethods += f"{valueType}_t get_{key}() {{\n  {mutexName}.lock();\n  {valueType}_t val = dfdata.{key};\n" + \
+            getterSetterMethods += f"{valueType}_t get_sofi_{key}() {{\n  {mutexName}.lock();\n  {valueType}_t val = sofi_data.{key};\n" + \
                                     f"  {mutexName}.unlock();\n  return val;\n}}\n"
 
-            getterSetterMethods += f"void set_{key}({valueType}_t val) {{\n  {mutexName}.lock();\n  dfdata.{key} = val;\n" + \
+            getterSetterMethods += f"void set_sofi_{key}({valueType}_t val) {{\n  {mutexName}.lock();\n  sofi_data.{key} = val;\n" + \
                                     f"  {mutexName}.unlock();\n}}\n\n"
 
         else:
-            getterSetterMethods += f"{valueType} get_{key}() {{\n  {mutexName}.lock();\n  {valueType} val = dfdata.{key};\n" + \
+            getterSetterMethods += f"{valueType} get_sofi_{key}() {{\n  {mutexName}.lock();\n  {valueType} val = sofi_data.{key};\n" + \
                                     f"  {mutexName}.unlock();\n  return val;\n}}\n"
-            getterSetterMethods += f"void set_{key}({valueType} val) {{\n  {mutexName}.lock();\n  dfdata.{key} = val;\n" + \
+            getterSetterMethods += f"void set_sofi_{key}({valueType} val) {{\n  {mutexName}.lock();\n  sofi_data.{key} = val;\n" + \
                                     f"  {mutexName}.unlock();\n}}\n\n"
 
 

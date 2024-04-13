@@ -33,13 +33,11 @@ typedef struct data_format {
   float speed;
   uint8_t mcc_state;
   bool fr_telem;
-  bool crz_pwr_mode;
   bool crz_spd_mode;
-  float crz_pwr_setpt;
   float crz_spd_setpt;
   bool eco;
   bool main_telem;
-  bool foot_brake;
+  float foot_brake;
   float regen_brake;
   float motor_current;
   float motor_power;
@@ -219,14 +217,8 @@ void set_mcc_state(uint8_t val);
 bool get_fr_telem();
 void set_fr_telem(bool val);
 
-bool get_crz_pwr_mode();
-void set_crz_pwr_mode(bool val);
-
 bool get_crz_spd_mode();
 void set_crz_spd_mode(bool val);
-
-float get_crz_pwr_setpt();
-void set_crz_pwr_setpt(float val);
 
 float get_crz_spd_setpt();
 void set_crz_spd_setpt(float val);
@@ -237,8 +229,8 @@ void set_eco(bool val);
 bool get_main_telem();
 void set_main_telem(bool val);
 
-bool get_foot_brake();
-void set_foot_brake(bool val);
+float get_foot_brake();
+void set_foot_brake(float val);
 
 float get_regen_brake();
 void set_regen_brake(float val);
