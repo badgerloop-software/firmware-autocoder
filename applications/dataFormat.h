@@ -14,10 +14,6 @@
 
 #define BYTE_ARRAY_SIZE sizeof(data_format)
 
-// Restart enable management
-bool get_restart_enable();
-void set_restart_enable(bool val);
-
 // Clears data struct
 void cleardfdata();
 
@@ -72,14 +68,11 @@ typedef struct data_format {
   float air_temp;
   float brake_temp;
   float dcdc_temp;
-  float mainIO_temp;
   float motor_controller_temp;
   float motor_temp;
   float road_temp;
   bool l_turn_led_en;
   bool r_turn_led_en;
-  bool brake_led_en;
-  bool headlights_led_en;
   bool hazards;
   float main_5V_bus;
   float main_12V_bus;
@@ -322,9 +315,6 @@ void set_brake_temp(float val);
 float get_dcdc_temp();
 void set_dcdc_temp(float val);
 
-float get_mainIO_temp();
-void set_mainIO_temp(float val);
-
 float get_motor_controller_temp();
 void set_motor_controller_temp(float val);
 
@@ -339,12 +329,6 @@ void set_l_turn_led_en(bool val);
 
 bool get_r_turn_led_en();
 void set_r_turn_led_en(bool val);
-
-bool get_brake_led_en();
-void set_brake_led_en(bool val);
-
-bool get_headlights_led_en();
-void set_headlights_led_en(bool val);
 
 bool get_hazards();
 void set_hazards(bool val);

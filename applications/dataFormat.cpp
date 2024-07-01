@@ -14,23 +14,6 @@ Mutex dfwrite_mutex;
 data_format dfwrite;
 data_format dfdata;
 
-// Restart enable variable and management
-Mutex restart_enable_mutex;
-bool restart_enable;
-
-bool get_restart_enable() {
-  restart_enable_mutex.lock();
-  bool val = restart_enable;
-  restart_enable_mutex.unlock();
-  return val;
-}
-
-void set_restart_enable(bool val) {
-  restart_enable_mutex.lock();
-  restart_enable = val;
-  restart_enable_mutex.unlock();
-}
-
 void cleardfdata() {
     memset(&dfdata, 0, BYTE_ARRAY_SIZE);
 
@@ -47,8 +30,6 @@ void cleardfdata() {
         dfdata.footer[i] = footer[i];
     }
 }
-
-
 
 void copyDataStructToWriteStruct() {
   dfwrite_mutex.lock();
@@ -94,14 +75,11 @@ void copyDataStructToWriteStruct() {
   dfwrite.air_temp = get_air_temp();
   dfwrite.brake_temp = get_brake_temp();
   dfwrite.dcdc_temp = get_dcdc_temp();
-  dfwrite.mainIO_temp = get_mainIO_temp();
   dfwrite.motor_controller_temp = get_motor_controller_temp();
   dfwrite.motor_temp = get_motor_temp();
   dfwrite.road_temp = get_road_temp();
   dfwrite.l_turn_led_en = get_l_turn_led_en();
   dfwrite.r_turn_led_en = get_r_turn_led_en();
-  dfwrite.brake_led_en = get_brake_led_en();
-  dfwrite.headlights_led_en = get_headlights_led_en();
   dfwrite.hazards = get_hazards();
   dfwrite.main_5V_bus = get_main_5V_bus();
   dfwrite.main_12V_bus = get_main_12V_bus();
@@ -255,14 +233,11 @@ Mutex park_brake_mutex;
 Mutex air_temp_mutex;
 Mutex brake_temp_mutex;
 Mutex dcdc_temp_mutex;
-Mutex mainIO_temp_mutex;
 Mutex motor_controller_temp_mutex;
 Mutex motor_temp_mutex;
 Mutex road_temp_mutex;
 Mutex l_turn_led_en_mutex;
 Mutex r_turn_led_en_mutex;
-Mutex brake_led_en_mutex;
-Mutex headlights_led_en_mutex;
 Mutex hazards_mutex;
 Mutex main_5V_bus_mutex;
 Mutex main_12V_bus_mutex;
@@ -842,18 +817,6 @@ void set_dcdc_temp(float val) {
   dcdc_temp_mutex.unlock();
 }
 
-float get_mainIO_temp() {
-  mainIO_temp_mutex.lock();
-  float val = dfdata.mainIO_temp;
-  mainIO_temp_mutex.unlock();
-  return val;
-}
-void set_mainIO_temp(float val) {
-  mainIO_temp_mutex.lock();
-  dfdata.mainIO_temp = val;
-  mainIO_temp_mutex.unlock();
-}
-
 float get_motor_controller_temp() {
   motor_controller_temp_mutex.lock();
   float val = dfdata.motor_controller_temp;
@@ -912,30 +875,6 @@ void set_r_turn_led_en(bool val) {
   r_turn_led_en_mutex.lock();
   dfdata.r_turn_led_en = val;
   r_turn_led_en_mutex.unlock();
-}
-
-bool get_brake_led_en() {
-  brake_led_en_mutex.lock();
-  bool val = dfdata.brake_led_en;
-  brake_led_en_mutex.unlock();
-  return val;
-}
-void set_brake_led_en(bool val) {
-  brake_led_en_mutex.lock();
-  dfdata.brake_led_en = val;
-  brake_led_en_mutex.unlock();
-}
-
-bool get_headlights_led_en() {
-  headlights_led_en_mutex.lock();
-  bool val = dfdata.headlights_led_en;
-  headlights_led_en_mutex.unlock();
-  return val;
-}
-void set_headlights_led_en(bool val) {
-  headlights_led_en_mutex.lock();
-  dfdata.headlights_led_en = val;
-  headlights_led_en_mutex.unlock();
 }
 
 bool get_hazards() {

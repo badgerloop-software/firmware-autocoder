@@ -7,23 +7,6 @@ Mutex dfwrite_mutex;
 data_format dfwrite;
 data_format dfdata;
 
-// Restart enable variable and management
-Mutex restart_enable_mutex;
-bool restart_enable;
-
-bool get_restart_enable() {
-  restart_enable_mutex.lock();
-  bool val = restart_enable;
-  restart_enable_mutex.unlock();
-  return val;
-}
-
-void set_restart_enable(bool val) {
-  restart_enable_mutex.lock();
-  restart_enable = val;
-  restart_enable_mutex.unlock();
-}
-
 void cleardfdata() {
     memset(&dfdata, 0, BYTE_ARRAY_SIZE);
 
@@ -40,7 +23,5 @@ void cleardfdata() {
         dfdata.footer[i] = footer[i];
     }
 }
-
-
 
 /*!!AUTO-GENERATE HERE!!*/

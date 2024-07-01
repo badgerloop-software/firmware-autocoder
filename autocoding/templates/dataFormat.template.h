@@ -7,10 +7,6 @@
 
 #define BYTE_ARRAY_SIZE sizeof(data_format)
 
-// Restart enable management
-bool get_restart_enable();
-void set_restart_enable(bool val);
-
 // Clears data struct
 void cleardfdata();
 
